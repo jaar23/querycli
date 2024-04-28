@@ -97,10 +97,8 @@ proc execQuery(txtarea: TextArea, args: varargs[string]) =
         for col in row.items:
           sqlrow.add(col)
         rows.add(sqlrow)
-      for col in sqlresult.ok.header:
-        header.addColumn(newTableColumn(col.len, 1, col, bgColor=bgWhite, fgColor=fgCyan))
       resultTbl.title = " " & stmt & " "
-      resultTbl.header = header
+      resultTbl.headerFromArray(sqlresult.ok.header, fgColor=fgBlue)
       resultTbl.loadFromSeq(rows)
    
  
