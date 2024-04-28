@@ -3,6 +3,13 @@
 Running sql in your CLI with a terminal UI. 
 
 ![demo](./demo.gif)
+
+Start by runnning 
+
+```shell
+querycli sqlite -f northwind.db
+```
+
 ---
 
 dependencies:
