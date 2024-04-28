@@ -18,7 +18,7 @@ var cliopts = newParser:
 var args = commandLineParams()
 var opts = cliopts.parse(args)
 
-if opts.sqlite.isSome:
+if opts.sqlite.isSome
   let path = if opts.sqlite.get.file_opt.isSome: opts.sqlite.get.file 
     else: 
       echo "Please provide the databse file for connection"

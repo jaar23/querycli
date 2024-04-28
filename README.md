@@ -2,6 +2,7 @@
 
 Running sql in your CLI with a terminal UI. 
 
+![demo](./demo.gif)
 ---
 
 dependencies:
