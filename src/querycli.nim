@@ -18,7 +18,7 @@ var cliopts = newParser:
 var args = commandLineParams()
 var opts = cliopts.parse(args)
 
-if opts.sqlite.isSome
+if opts.sqlite.isSome:
   let path = if opts.sqlite.get.file_opt.isSome: opts.sqlite.get.file 
     else: 
       echo "Please provide the databse file for connection"
@@ -42,6 +42,7 @@ for tbl in listTable(db).ok:
   dbTables.add(newListRow(0, "[T] " & tbl, tbl, bgColor=bgBlue))
   for tblCol in listTableColumns(db, tbl).ok:
     dbTables.add(newListRow(0, "   [C] " & tblCol.name, tblCol.tableName, bgColor=bgBlue))
+
 dbTablePanel.rows = dbTables
 
 

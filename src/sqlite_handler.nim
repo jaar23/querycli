@@ -1,5 +1,7 @@
 import db_connector/db_sqlite
 import strutils
+from terminal import ansiResetCode, ansiBackgroundColorCode, ansiForegroundColorCode
+import colors
 
 type
   SqlResult*[O, E] = tuple[ok: O, error: E]
@@ -102,4 +104,16 @@ proc listTableColumns*(db: DbConn, tableName: string): SqlResult[seq[SqliteDbCol
     result.ok = dbcolumns
   except:
     result.error = getCurrentExceptionMsg()
+
+
+proc tbColor*(table: string): string =
+  let text = ansiBackgroundColorCode(colBlue) & ansiForegroundColorCode(colWhite) &
+    table & ansiResetCode
+  return text
+
+proc colColor*(column: string): string =
+  let text = ansiBackgroundColorCode(colLightYellow) & ansiForegroundColorCode(colBlack) &
+    column & ansiResetCode
+  return text
+
 
