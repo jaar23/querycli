@@ -13,3 +13,4 @@ bin           = @["querycli"]
 requires "nim >= 2.0.2"
 requires "tui_widget >= 0.1.0"
 requires "db_connector >= 0.1.0"
+requires "argparse >= 4.0.1"

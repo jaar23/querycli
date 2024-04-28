@@ -1,5 +1,5 @@
 import db_connector/db_sqlite
-
+import strutils
 
 type
   SqlResult*[O, E] = tuple[ok: O, error: E]
@@ -7,6 +7,18 @@ type
   SelectResult* = object
     header*: seq[string]
     data*: seq[Row]
+  
+  SqliteDbType* = enum
+    Text, Numeric, Integer, Real, Blob, Unknown
+
+  SqliteDbColumn* = object
+    tableName*: string
+    cid*: int
+    name*: string
+    typ*: SqliteDbType
+    notNull*: bool
+    defaulValue*: string
+    primaryKey*: bool
 
 
 proc select*(db: DbConn, stmt: string): SqlResult[SelectResult, string] =
@@ -59,5 +71,35 @@ proc listTable*(db: DbConn): SqlResult[seq[string], string] =
     result.error = getCurrentExceptionMsg()
 
 
-# get table columns
-# PRAGMA table_info(tb_rates);
+proc listTableColumns*(db: DbConn, tableName: string): SqlResult[seq[SqliteDbColumn], string] =
+  let stmt = "PRAGMA table_info(" & tableName & ")"
+  try:
+    var dbcolumns = newSeq[SQliteDbColumn]()
+    let rows = db.getAllRows(sql stmt)
+    for r in rows:
+      let dbcol = SqliteDbColumn(
+        tableName: tableName,
+        cid: r[0].parseInt(),
+        name: r[1],
+        typ: 
+          if r[2].startsWith("TEXT"): Text
+          elif r[2].startsWith("INTEGER"): Integer
+          elif r[2].startsWith("NUMERIC"): Numeric
+          elif r[2].startsWith("REAL"): Real
+          elif r[2].startsWith("BLOB"): Blob
+          else: Unknown,
+        notNull: 
+          if r[3] == "true": true
+          elif r[3] == "1": true
+          else: false,
+        defaulValue: r[4],
+        primaryKey: 
+          if r[5] == "true": true
+          elif r[5] == "1": true
+          else: false
+      )
+      dbcolumns.add(dbcol)
+    result.ok = dbcolumns
+  except:
+    result.error = getCurrentExceptionMsg()
+

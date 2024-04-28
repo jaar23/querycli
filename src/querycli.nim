@@ -1,9 +1,37 @@
 import tui_widget, illwill, std/enumerate, strutils
+import argparse
 import db_connector/db_sqlite
 import sqlite_handler
 
-let db = open("rates.db", "", "", "")
- 
+var db: DbConn
+var cliopts = newParser:
+  command("sqlite"):
+    option("-f", "--file", help="sqlite database file")
+  command("pgsql"):
+    option("-u", "--username", help="postgresql user's username")
+    option("-p", "--password", help="postgresql user's password")
+    option("-h", "--host", help="postgresql host")
+    option("-pt", "--port", help="posgresql exposed port")
+  help("{prog} is a sql query tool with tui cli.")
+
+
+var args = commandLineParams()
+var opts = cliopts.parse(args)
+
+if opts.sqlite.isSome:
+  let path = if opts.sqlite.get.file_opt.isSome: opts.sqlite.get.file 
+    else: 
+      echo "Please provide the databse file for connection"
+      quit(0)
+  db = open(path, "", "", "")
+elif opts.pgsql.isSome:
+  echo "not implemented"
+  quit(0)
+else:
+  echo "please specific databse and connection options"
+  quit(0)
+
+
 var dbTablePanel = newListView(id="tbl")
 dbTablePanel.title = " Tables "
 dbTablePanel.statusbar = false
@@ -11,8 +39,9 @@ dbTablePanel.selectionStyle = HighlightArrow
 
 var dbTables = newSeq[ListRow]()
 for tbl in listTable(db).ok:
-  dbTables.add(newListRow(0, tbl, tbl, bgColor=bgBlue))
-
+  dbTables.add(newListRow(0, "[T] " & tbl, tbl, bgColor=bgBlue))
+  for tblCol in listTableColumns(db, tbl).ok:
+    dbTables.add(newListRow(0, "   [C] " & tblCol.name, tblCol.tableName, bgColor=bgBlue))
 dbTablePanel.rows = dbTables
 
 
