@@ -22,6 +22,10 @@ type
     defaulValue*: string
     primaryKey*: bool
 
+  SqliteTable* = object
+    name*: string
+    columns*: seq[SqliteDbColumn]
+
 
 proc select*(db: DbConn, stmt: string): SqlResult[SelectResult, string] =
   try:
@@ -106,14 +110,14 @@ proc listTableColumns*(db: DbConn, tableName: string): SqlResult[seq[SqliteDbCol
     result.error = getCurrentExceptionMsg()
 
 
-proc tbColor*(table: string): string =
-  let text = ansiBackgroundColorCode(colBlue) & ansiForegroundColorCode(colWhite) &
-    table & ansiResetCode
-  return text
-
-proc colColor*(column: string): string =
-  let text = ansiBackgroundColorCode(colLightYellow) & ansiForegroundColorCode(colBlack) &
-    column & ansiResetCode
-  return text
-
-
+# proc tbColor*(table: string): string =
+#   let text = ansiBackgroundColorCode(colBlue) & ansiForegroundColorCode(colWhite) &
+#     table & ansiResetCode
+#   return text
+#
+# proc colColor*(column: string): string =
+#   let text = ansiBackgroundColorCode(colLightYellow) & ansiForegroundColorCode(colBlack) &
+#     column & ansiResetCode
+#   return text
+#
+#
