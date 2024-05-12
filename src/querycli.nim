@@ -197,11 +197,10 @@ proc autocomplete(txtarea: TextArea, args: varargs[string]) =
         tableName = t
         break
 
-    if not hasTable:
-      for t in dbobjects.keys():
-        if t.toUpper().startsWith(currToken.toUpper()):
-          completionList.add(Completion(icon: "", value: t,
-              description: ""))
+    for t in dbobjects.keys():
+      if t.toUpper().startsWith(currToken.toUpper()):
+        completionList.add(Completion(icon: "", value: t,
+            description: ""))
   
   if tableName != "":
     let columns = dbobjects[tableName]
