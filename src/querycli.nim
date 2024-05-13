@@ -65,6 +65,8 @@ queryPanel.statusbar = false
 queryPanel.title = " SQL Editor "
 queryPanel.enableAutocomplete = true
 queryPanel.autocompleteTrigger = 1
+queryPanel.autocompleteBgColor = bgGreen
+queryPanel.autocompleteFgColor = fgWhite
 
 var runBtn = newButton(id = "run")
 runBtn.label = "RUN"
@@ -102,16 +104,17 @@ proc execQuery(txtarea: TextArea, args: varargs[string]) =
     else:
       let sqlresult = select(db, stmt)
       var header = newTableRow()
-      var rows = newSeq[seq[string]]()
-
-      for i, row in enumerate(sqlresult.ok.data):
-        var sqlrow = newSeq[string]()
-        for col in row.items:
-          sqlrow.add(col)
-        rows.add(sqlrow)
-      resultTbl.title = " " & stmt & " "
       resultTbl.headerFromArray(sqlresult.ok.header, fgColor = fgBlue)
-      resultTbl.loadFromSeq(rows)
+      for i, row in enumerate(sqlresult.ok.data):
+        var tableRow = newTableRow()
+        for i, col in enumerate(row.items):
+          let text = if col.len > 50: col[0..50] & ".." else: col
+          var column = newTableColumn(text, col)
+          column.key = sqlresult.ok.header[i]
+          tableRow.addColumn(column)
+        resultTbl.addRow(tableRow)
+      resultTbl.title = " " & stmt & " "
+      resultTbl.render()
 
 
 proc autocomplete(txtarea: TextArea, args: varargs[string]) =
@@ -199,20 +202,29 @@ proc autocomplete(txtarea: TextArea, args: varargs[string]) =
 
     for t in dbobjects.keys():
       if t.toUpper().startsWith(currToken.toUpper()):
-        completionList.add(Completion(icon: "", value: t,
+        completionList.add(Completion(icon: "[T]  ", value: t,
             description: ""))
   
   if tableName != "":
     let columns = dbobjects[tableName]
     for c in columns:
       if c.name.toUpper().startsWith(currToken.toUpper()):
-        completionList.add(Completion(icon: "", value: c.name, description: ""))
+        completionList.add(Completion(icon: "[C]  ", value: c.name, description: ""))
 
   if currToken != "":
-    var suggestion = sqlClauses.filter((x: string) => x.startsWith(
+    var aggfn = aggregateFunction.filter((x: string) => x.startsWith(
         currToken.toUpper))
-    for s in suggestion:
-      completionList.add(Completion(icon: "", value: s, description: ""))
+    for s in aggfn:
+      completionList.add(Completion(icon: "[S]", value: s, description: ""))
+    
+    var dtfn = datetimeFunction.filter((x: string)  => x.startsWith(currToken.toUpper))
+    for s in aggfn:
+      completionList.add(Completion(icon: "[S]", value: s, description: ""))
+
+    var clauses = sqlClauses.filter((x: string) => x.startsWith(
+        currToken.toUpper))
+    for s in clauses:
+      completionList.add(Completion(icon: "[S]", value: s, description: ""))
 
   txtarea.autocompleteList = completionList
 
@@ -225,8 +237,22 @@ proc sampleQuery(lv: ListView, args: varargs[string]) =
   let stmt = "SELECT * FROM " & table
   queryPanel.value = stmt
 
+
+proc displayRow(tbl: table_wg.Table, args: varargs[string]) =
+  var display = newDisplay(tbl.x1 + 2, (tbl.y2 / 4).toInt, 
+                           tbl.x2 - 2, tbl.y2 - (tbl.y2 / 4).toInt, 
+                           title="Detail View", statusbar = false, 
+                           bgColor=bgWhite, fgColor=fgBlack,
+                           tb=tbl.tb)
+  for col in tbl.selected().columns():
+    display.text =  display.text & col.key & ": " & col.value & "\n"
+  display.illwillInit = true
+  display.onControl()
+
+
 when isMainModule:
   resultTbl.on("empty", emptyRecord)
+  resultTbl.on("enter", displayRow)
   dbTablePanel.on("enter", sampleQuery)
   queryPanel.on(Key.F5, execQuery)
   queryPanel.on("query", execQuery)
