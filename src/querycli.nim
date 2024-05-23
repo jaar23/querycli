@@ -192,11 +192,11 @@ proc autocomplete(txtarea: TextArea, args: varargs[string]) =
     if token.token.toUpper() == "FROM": 
       populateTable = true
       continue
+    else: continue
+    if populateTable and token.token.toUpper() == "JOIN":
+      populateTable = true
     else:
-      if populateTable and token.token.toUpper() == "JOIN":
-        populateTable = true
-      else:
-        populateTable = false
+      populateTable = false
   if populateTable:
     for t in dbobjects.keys():
       if txtarea.value.contains(t):
