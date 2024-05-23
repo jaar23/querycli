@@ -1,7 +1,7 @@
 import db_connector/db_sqlite
 import strutils
-from terminal import ansiResetCode, ansiBackgroundColorCode, ansiForegroundColorCode
-import colors
+#from terminal import ansiResetCode, ansiBackgroundColorCode, ansiForegroundColorCode
+#import colors
 
 type
   SqlResult*[O, E] = tuple[ok: O, error: E]

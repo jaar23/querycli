@@ -1,7 +1,9 @@
 import tui_widget, illwill, std/enumerate, strutils, sequtils
-import argparse, sugar, tables as systable
+import argparse, sugar, tables as systable, std/wordwrap
 import db_connector/db_sqlite
 import sqlite_handler
+# from terminal import styleBright, styleBlink, ansiStyleCode, ansiResetCode,
+#      resetAttributes
 
 var db: DbConn
 var cliopts = newParser:
@@ -108,7 +110,9 @@ proc execQuery(txtarea: TextArea, args: varargs[string]) =
       for i, row in enumerate(sqlresult.ok.data):
         var tableRow = newTableRow()
         for i, col in enumerate(row.items):
-          let text = if col.len > 50: col[0..50] & ".." else: col
+          var text = if col.len > 50: col[0..50].escape() & ".." else: col.escape()
+          text.delete(0..0)
+          text.delete(text.len - 1..text.len - 1)
           var column = newTableColumn(text, col)
           column.key = sqlresult.ok.header[i]
           tableRow.addColumn(column)
@@ -188,11 +192,11 @@ proc autocomplete(txtarea: TextArea, args: varargs[string]) =
     if token.token.toUpper() == "FROM": 
       populateTable = true
       continue
-    else: continue
-    if populateTable and token.token.toUpper() == "JOIN":
-      populateTable = true
     else:
-      populateTable = false
+      if populateTable and token.token.toUpper() == "JOIN":
+        populateTable = true
+      else:
+        populateTable = false
   if populateTable:
     for t in dbobjects.keys():
       if txtarea.value.contains(t):
@@ -239,13 +243,21 @@ proc sampleQuery(lv: ListView, args: varargs[string]) =
 
 
 proc displayRow(tbl: table_wg.Table, args: varargs[string]) =
-  var display = newDisplay(tbl.x1 + 2, (tbl.y2 / 4).toInt, 
-                           tbl.x2 - 2, tbl.y2 - (tbl.y2 / 4).toInt, 
-                           title="Detail View", statusbar = false, 
+  var display = newDisplay(tbl.x1 + 2, (tbl.y2 / 6).toInt, 
+                           tbl.x2 - 2, tbl.y2 - (tbl.y2 / 6).toInt, 
+                           title="Row Detail", statusbar = false, 
                            bgColor=bgWhite, fgColor=fgBlack,
                            tb=tbl.tb)
+  var colWitdh = 0
   for col in tbl.selected().columns():
-    display.text =  display.text & col.key & ": " & col.value & "\n"
+    if col.key.len > colWitdh: colWitdh = col.key.len + 1
+
+  for col in tbl.selected().columns():
+    display.text = display.text & alignLeft(col.key, colWitdh) & "\n\n"
+    var content = wrapWords(col.value, display.x2 - display.x1 - colWitdh)
+    for c in content.splitLines():
+      display.text = display.text & " ".repeat(colWitdh) & c & "\n"
+    display.text = display.text & "-".repeat(display.width - display.x1) & "\n"
   display.illwillInit = true
   display.onControl()
 
